@@ -45,7 +45,7 @@ async def get_exchange_rate_from_api(from_currency: str, to_currency: str) -> di
 
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         try:
-            url = f"{EXCHANGE_API_BASE_URL.rsplit('/', 1)[0]}/{from_currency.upper()}"
+            url = f"{EXCHANGE_API_BASE_URL}/{from_currency.upper()}"
             response = await client.get(url)
         except httpx.HTTPError as exc:
             logger.error(f"Erro ao chamar API de câmbio: {str(exc)}")
