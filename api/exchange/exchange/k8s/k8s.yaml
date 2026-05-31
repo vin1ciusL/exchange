@@ -1,0 +1,58 @@
+# ─── ConfigMap ──────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: exchange-config
+data:
+  AUTH_SERVICE_URL: "http://auth:8080"
+  REQUEST_TIMEOUT: "6.0"
+---
+# ─── Exchange Deployment ────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exchange
+  labels:
+    app: exchange
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exchange
+  template:
+    metadata:
+      labels:
+        app: exchange
+    spec:
+      containers:
+        - name: exchange
+          image: rafaelken/exchange:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: exchange-config
+          env:
+            - name: EXCHANGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: EXCHANGE_API_KEY
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+---
+# ─── Exchange Service ───────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: exchange
+spec:
+  selector:
+    app: exchange
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
